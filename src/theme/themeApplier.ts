@@ -194,13 +194,14 @@ export class ThemeApplier {
   }
 
   /**
-   * Fade a hex color (reduce opacity - returns rgba string).
+   * Fade a hex color (reduce opacity - returns #RRGGBBAA string).
    */
   private fade(hex: string, opacity: number): string {
     const rgb = this.hexToRgb(hex);
     if (!rgb) return hex;
     
-    return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
+    const alpha = Math.round(opacity * 255);
+    return `#${[rgb.r, rgb.g, rgb.b, alpha].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
   }
 
   /**
