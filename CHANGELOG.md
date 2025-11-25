@@ -2,14 +2,20 @@
 
 All notable changes to Themetree will be documented in this file.
 
-## [0.1.1] - 2024-11-25
+## [0.1.8] - 2025-11-25
+
+### Added
+- Added icon
+- Dw 0.1.1 to 0.1.7 were just me fixing the CI/CD, you didn't miss anything 
+
+## [0.1.1] - 2025-11-25
 
 ### Changed
 - Updated README with marketplace links and badges
 - Added comprehensive FAQ section
 - Added hiring section for Super44
 
-## [0.1.0] - 2024-11-25
+## [0.1.0] - 2025-11-25
 
 ### Added
 - Initial release
@@ -21,4 +27,5 @@ All notable changes to Themetree will be documented in this file.
 - Three intensity levels: subtle, medium, vibrant
 - Commands: Refresh Theme, Clear Theme Colors
 - Polling fallback for git detection reliability
+
 

@@ -23,3 +23,4 @@ export function hashToIndex(hash: number, maxIndex: number): number {
   return Math.floor(normalized * maxIndex);
 }
 
+

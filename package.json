@@ -1,7 +1,8 @@
 {
   "name": "themetree",
   "displayName": "Themetree",
-  "description": "Automatically color your IDE based on the current git branch - perfect for worktrees",
+  "icon": "images/icon.png",
+  "description": "Automatically color your IDE based on the current git branch - perfect for AI coding with worktrees",
   "version": "0.1.9",
   "publisher": "hjegeorge",
   "engines": {

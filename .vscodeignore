@@ -8,3 +8,5 @@ tsconfig.json
 node_modules/**
 .github/**
 **/.DS_Store
+.env*
+.env.local
