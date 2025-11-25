@@ -1,4 +1,4 @@
-name: Auto Tag on Version Bump
+name: Auto Tag and Publish
 
 on:
   push:
@@ -11,25 +11,69 @@ permissions:
   contents: write
 
 jobs:
-  tag:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
-      - name: Check for new version and create tag
+      - name: Check for new version
+        id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           
           if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "Tag v$VERSION already exists, skipping"
+            echo "Tag v$VERSION already exists"
+            echo "new_version=false" >> $GITHUB_OUTPUT
           else
-            echo "Creating tag v$VERSION"
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git tag "v$VERSION"
-            git push origin "v$VERSION"
-            echo "✅ Tag v$VERSION created and pushed"
-            echo "📦 This will trigger the publish workflow"
+            echo "New version v$VERSION detected"
+            echo "new_version=true" >> $GITHUB_OUTPUT
           fi
+      
+      - name: Create and push tag
+        if: steps.version.outputs.new_version == 'true'
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+          echo "✅ Tag v$VERSION created"
+
+      # Publish steps (same as publish.yml)
+      - name: Setup Node.js
+        if: steps.version.outputs.new_version == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Install dependencies
+        if: steps.version.outputs.new_version == 'true'
+        run: npm ci
+        
+      - name: Run tests
+        if: steps.version.outputs.new_version == 'true'
+        run: npm test
+        
+      - name: Build extension
+        if: steps.version.outputs.new_version == 'true'
+        run: npm run compile
+
+      - name: Publish to VS Marketplace
+        if: steps.version.outputs.new_version == 'true'
+        uses: HaaLeo/publish-vscode-extension@v2
+        with:
+          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
+          registryUrl: https://marketplace.visualstudio.com
+          
+      - name: Publish to Open VSX Registry
+        if: steps.version.outputs.new_version == 'true'
+        uses: HaaLeo/publish-vscode-extension@v2
+        with:
+          pat: ${{ secrets.OPEN_VSX_TOKEN }}
+      
+      - name: Done
+        if: steps.version.outputs.new_version == 'true'
+        run: echo "🚀 Published v${{ steps.version.outputs.version }} to marketplaces!"
