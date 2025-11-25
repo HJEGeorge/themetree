@@ -2,7 +2,7 @@
 
 All notable changes to Themetree will be documented in this file.
 
-## [0.1.7] - 2025-11-25
+## [0.1.8] - 2025-11-25
 
 ### Added
 - Added icon
