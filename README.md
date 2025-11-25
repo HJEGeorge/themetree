@@ -127,7 +127,7 @@ Try running the command **"Themetree: Refresh Theme"** from the Command Palette 
 
 ## 📝 License
 
-MIT
+MIT - do with this as you want, although would appreciate a shout out if you can
 
 ---
 
