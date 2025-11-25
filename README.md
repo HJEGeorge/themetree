@@ -125,6 +125,11 @@ The current color palette is optimized for dark themes. Light theme support may 
 
 Try running the command **"Themetree: Refresh Theme"** from the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`). If that works, there may be a delay in git state detection. The extension includes a polling fallback that checks every 2 seconds.
 
+## 👥 Contributors
+
+- [@HJEGeorge](https://github.com/HJEGeorge) - Creator
+- [@luksch42](https://github.com/luksch42) - Bug fixes
+
 ## 📝 License
 
 MIT - do with this as you want, although would appreciate a shout out if you can

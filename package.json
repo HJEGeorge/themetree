@@ -2,7 +2,7 @@
   "name": "themetree",
   "displayName": "Themetree",
   "description": "Automatically color your IDE based on the current git branch - perfect for worktrees",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "publisher": "hjegeorge",
   "engines": {
     "vscode": "^1.74.0"
