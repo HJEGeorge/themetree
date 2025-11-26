@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import * as crypto from 'crypto';
+import { generateWorkspaceName } from './friendlyName';
 
 // Themetree workspace storage location
 const THEMETREE_DIR = path.join(os.homedir(), '.themetree', 'workspaces');
@@ -33,11 +33,59 @@ export class WorkspaceManager {
 
   /**
    * Get the path to the Themetree workspace file for a given folder.
+   * Uses friendly names like "projectName-swift-falcon.code-workspace".
    */
   getThemetreeWorkspacePath(folderPath: string): string {
-    const hash = crypto.createHash('md5').update(folderPath).digest('hex').slice(0, 12);
-    const safeName = path.basename(folderPath).replace(/[^a-zA-Z0-9-_]/g, '_');
-    return path.join(THEMETREE_DIR, `${safeName}-${hash}.code-workspace`);
+    // Check if we already have a workspace file for this folder
+    const existingPath = this.findExistingWorkspaceFor(folderPath);
+    if (existingPath) {
+      return existingPath;
+    }
+    
+    // Generate a new friendly name based on project folder name
+    const projectName = path.basename(folderPath);
+    const existingNames = this.getExistingWorkspaceNames();
+    const workspaceName = generateWorkspaceName(projectName, existingNames);
+    return path.join(THEMETREE_DIR, `${workspaceName}.code-workspace`);
+  }
+
+  /**
+   * Get all existing workspace names in the Themetree directory.
+   */
+  private getExistingWorkspaceNames(): Set<string> {
+    const names = new Set<string>();
+    if (!fs.existsSync(THEMETREE_DIR)) {
+      return names;
+    }
+    for (const file of fs.readdirSync(THEMETREE_DIR)) {
+      if (file.endsWith('.code-workspace')) {
+        names.add(file.replace('.code-workspace', ''));
+      }
+    }
+    return names;
+  }
+
+  /**
+   * Find an existing workspace file that points to the given folder.
+   */
+  private findExistingWorkspaceFor(folderPath: string): string | undefined {
+    if (!fs.existsSync(THEMETREE_DIR)) {
+      return undefined;
+    }
+    for (const file of fs.readdirSync(THEMETREE_DIR)) {
+      if (!file.endsWith('.code-workspace')) continue;
+      const filePath = path.join(THEMETREE_DIR, file);
+      try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const workspace: CodeWorkspace = JSON.parse(content);
+        if (workspace.folders?.[0]?.path === folderPath) {
+          return filePath;
+        }
+      } catch {
+        continue;
+      }
+    }
+    return undefined;
   }
 
   /**
