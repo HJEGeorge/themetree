@@ -3,7 +3,7 @@
   "displayName": "Themetree",
   "icon": "images/icon.png",
   "description": "Automatically color your IDE based on the current git branch - perfect for AI coding with worktrees",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "publisher": "hjegeorge",
   "engines": {
     "vscode": "^1.74.0"
@@ -33,6 +33,10 @@
       {
         "command": "themetree.clear",
         "title": "Themetree: Clear Theme Colors"
+      },
+      {
+        "command": "themetree.reopenAsWorkspace",
+        "title": "Themetree: Reopen as Themetree Workspace"
       }
     ],
     "configuration": {
@@ -58,6 +62,11 @@
           "type": "array",
           "default": [],
           "description": "Branch patterns to exclude from theming (supports wildcards like 'release/*')"
+        },
+        "themetree.useWorkspaceFile": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use external workspace file (enables per-window colors). When false, colors are stored in .vscode/settings.json"
         }
       }
     }
