@@ -1,29 +1,39 @@
 import * as vscode from 'vscode';
 import { ThemeColors, COLOR_PALETTE, getThemeByIndex } from './colorPalette';
 import { hashString, hashToIndex } from '../utils/hash';
+import { WorkspaceManager } from '../workspace/workspaceManager';
 
 type Intensity = 'subtle' | 'medium' | 'vibrant';
 
 /**
  * Applies theme colors to the workspace based on branch name.
+ * Uses external .code-workspace files to avoid modifying repo files.
  */
 export class ThemeApplier {
-  
+  private context: vscode.ExtensionContext;
+  private workspaceManager: WorkspaceManager;
+
+  constructor(context: vscode.ExtensionContext, workspaceManager: WorkspaceManager) {
+    this.context = context;
+    this.workspaceManager = workspaceManager;
+  }
+
   /**
    * Apply theme colors for a given branch name.
+   * Returns true if colors were applied, false if workspace reopen is needed.
    */
-  async applyTheme(branchName: string | undefined): Promise<void> {
+  async applyTheme(branchName: string | undefined): Promise<{ applied: boolean; needsReopen: boolean }> {
     // Don't try to apply if no workspace is open
     if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
       console.log('Themetree: No workspace open, skipping theme application');
-      return;
+      return { applied: false, needsReopen: false };
     }
 
     const config = vscode.workspace.getConfiguration('themetree');
     const enabled = config.get<boolean>('enabled', true);
     
     if (!enabled) {
-      return;
+      return { applied: false, needsReopen: false };
     }
 
     const intensity = config.get<Intensity>('intensity', 'medium');
@@ -35,7 +45,13 @@ export class ThemeApplier {
         defaultBranches.includes(branchName) || 
         this.isExcluded(branchName, excludedBranches)) {
       await this.clearColors(true); // Silent clear
-      return;
+      return { applied: false, needsReopen: false };
+    }
+
+    // Check if we're in a Themetree workspace
+    if (!this.workspaceManager.isThemetreeWorkspace()) {
+      // Not in a Themetree workspace - we need to prompt for reopen
+      return { applied: false, needsReopen: true };
     }
 
     // Hash branch name to get a color
@@ -47,6 +63,8 @@ export class ThemeApplier {
     
     // Show notification on theme change
     vscode.window.setStatusBarMessage(`Themetree: ${theme.name} theme applied`, 3000);
+    
+    return { applied: true, needsReopen: false };
   }
 
   /**
@@ -77,18 +95,18 @@ export class ThemeApplier {
   }
 
   /**
-   * Apply the color customizations to workspace settings.
+   * Apply the color customizations to the external workspace file.
    */
   private async applyColors(theme: ThemeColors, intensity: Intensity): Promise<void> {
     const colors = this.generateColorCustomizations(theme, intensity);
+    const folderPath = this.workspaceManager.getOriginalFolderPath();
     
-    const config = vscode.workspace.getConfiguration();
-    
-    await config.update(
-      'workbench.colorCustomizations',
-      colors,
-      vscode.ConfigurationTarget.Workspace
-    );
+    if (!folderPath) {
+      console.error('Themetree: Could not determine folder path');
+      return;
+    }
+
+    await this.workspaceManager.createOrUpdateWorkspace(folderPath, colors);
   }
 
   /**
@@ -152,13 +170,16 @@ export class ThemeApplier {
       return;
     }
 
-    const config = vscode.workspace.getConfiguration();
+    const folderPath = this.workspaceManager.getOriginalFolderPath();
     
-    await config.update(
-      'workbench.colorCustomizations',
-      undefined, // Remove the key entirely
-      vscode.ConfigurationTarget.Workspace
-    );
+    if (!folderPath) {
+      if (!silent) {
+        vscode.window.showInformationMessage('Themetree: No colors to clear');
+      }
+      return;
+    }
+
+    await this.workspaceManager.clearWorkspaceColors(folderPath);
     
     if (!silent) {
       vscode.window.showInformationMessage('Themetree: Colors cleared');
@@ -225,4 +246,3 @@ export class ThemeApplier {
     return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
   }
 }
-

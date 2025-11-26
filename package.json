@@ -33,6 +33,10 @@
       {
         "command": "themetree.clear",
         "title": "Themetree: Clear Theme Colors"
+      },
+      {
+        "command": "themetree.reopenAsWorkspace",
+        "title": "Themetree: Reopen as Themetree Workspace"
       }
     ],
     "configuration": {
