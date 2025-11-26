@@ -229,8 +229,6 @@ export class WorkspaceManager {
    * Prompt the user to reopen as a Themetree workspace.
    */
   async promptReopenAsWorkspace(folderPath: string): Promise<boolean> {
-    const workspacePath = this.getThemetreeWorkspacePath(folderPath);
-
     const result = await vscode.window.showInformationMessage(
       'Themetree: Reopen as Themetree workspace for per-window colors? (Your repo files won\'t be modified)',
       'Reopen',
@@ -239,11 +237,11 @@ export class WorkspaceManager {
     );
 
     if (result === 'Reopen') {
-      // Create the workspace file first (colors will be applied after reopen)
-      await this.createOrUpdateWorkspace(folderPath, {});
+      // Create the workspace file first and get the actual path
+      const actualWorkspacePath = await this.createOrUpdateWorkspace(folderPath, {});
       
-      // Open the workspace file
-      const workspaceUri = vscode.Uri.file(workspacePath);
+      // Open the workspace file using the path returned by createOrUpdateWorkspace
+      const workspaceUri = vscode.Uri.file(actualWorkspacePath);
       await vscode.commands.executeCommand('vscode.openFolder', workspaceUri);
       return true;
     } else if (result === 'Never for this folder') {
@@ -282,6 +280,7 @@ export class WorkspaceManager {
     await config.update('colorCustomizations', undefined, vscode.ConfigurationTarget.Workspace);
   }
 }
+
 
 
 
